@@ -28,18 +28,10 @@ class Game {
         this.board.makeNewCell();
     }
 
-    static pushUp() {
-        this.push(Direction.UP);/**/////////////////////////
-    }
-    static pushDown() {
-        this.push(Direction.DOWN);
-    }
-    static pushLeft() {
-        this.push(Direction.LEFT);
-    }
-    static pushRight() {
-        this.push(Direction.RIGHT);
-    }
+    static pushUp()    { this.push(Direction.UP); }
+    static pushDown()  { this.push(Direction.DOWN); }
+    static pushLeft()  { this.push(Direction.LEFT); }
+    static pushRight() { this.push(Direction.RIGHT); }
 
     static push(direction) {
         Logger.logSystem('Pushing ' + direction + '...');
@@ -76,7 +68,9 @@ class Control {
 }
 
 class UI {
+    /** @type {Element} */
     static fgLayer;
+    /** @type {Array<Animation>} */
     static animationQueue;
 
     static init() {
@@ -92,14 +86,14 @@ class UI {
             this.fgLayer.removeChild(this.fgLayer.children[0]);
         }
     }
-
+/*
     static clearAnimationQueue() {
         while(this.animationQueue.length > 0) {
             this.animationQueue.shift();
         }
     }
-/////////////////////////////////////////////////////////////////////////////////
-static pushAnimation(animation) {
+*/
+    static pushAnimation(animation) {
         this.animationQueue.push(animation);
     }
 
@@ -108,6 +102,9 @@ static pushAnimation(animation) {
     }
 
     static showAnimation() {
+        this.removeOverlappingCells();
+        this.removeAnimationClasses();
+        
         while(this.animationQueue.length > 0) {
             const anim = this.animationQueue.shift();
             if(anim instanceof NewCellAnimation) {
@@ -120,7 +117,24 @@ static pushAnimation(animation) {
                 throw TypeError(anim + ' is not an animation.');
             }
         }
-        this.clearAnimationQueue();
+    }
+
+    static removeOverlappingCells() {
+        const cells = this.fgLayer.getElementsByClassName('cell-will-be-removed');
+        while(cells.length > 0) {
+            cells[0].remove();
+        }
+    }
+
+    static removeAnimationClasses() {
+        const newCells = this.fgLayer.getElementsByClassName('cell-new');
+        while(newCells.length > 0) {
+            newCells[0].classList.remove('cell-new');
+        }
+        const mergedCells = this.fgLayer.getElementsByClassName('cell-merge');
+        while(mergedCells.length > 0) {
+            mergedCells[0].classList.remove('cell-merge');
+        }
     }
 
     static makeNewCell(anim) {
@@ -146,14 +160,16 @@ static pushAnimation(animation) {
 
     static doubleCell(anim) {   ///////////////////// Merge???
         const sq = anim.coord.toSq();
-        const cells = this.fgLayer.getElementsByClassName(sq);
-        while(cells.length > 0) {
-            cells[0].remove();
+
+        const mergingCells = this.fgLayer.getElementsByClassName(sq);
+        for(let i = 0; i < mergingCells.length; i++) {
+            mergingCells[i].classList.add('cell-will-be-removed');
         }
-        const newCell = document.createElement('div');
-        newCell.classList.add('cell', 'lv-' + anim.level);
-        newCell.classList.add(sq);
-        this.fgLayer.appendChild(newCell);
+
+        const mergedCell = document.createElement('div');
+        mergedCell.classList.add('cell', 'lv-' + anim.level, 'cell-merge');
+        mergedCell.classList.add(sq);
+        this.fgLayer.appendChild(mergedCell);
 
         //Logger.logUI(anim);
     }
@@ -205,7 +221,7 @@ class Board {
         
         let isSomeLineChanged = false;
         for(let i = 0; i < Board.size; i++) {
-            let oldLine, newLine, isChanged; ///./////////isChanged 아래로 옮기기
+            let oldLine, newLine;
 
             if(Direction.isVertical(direction)) {
                 oldLine = this.getCol(i);
@@ -218,11 +234,11 @@ class Board {
                 newLine = this.getPushedLineToFirst(oldLine);
             } else if(Direction.isDownOrRight(direction)) {
                 newLine = this.getPushedLineToFirst(oldLine.reverse()).reverse();
-                this.tmpAnimList = this.tmpAnimList.map(a => a.flipRow())   ///////////////////missing semicolon
+                this.tmpAnimList = this.tmpAnimList.map(a => a.flipRow());
             } else throw directionTypeError;
             this.tmpAnimList = this.tmpAnimList.map(a => a.setCol(i));
 
-            ///////////isChanged here
+            let isChanged;
             if(Direction.isVertical(direction)) {
                 isChanged = this.replaceColAndReturnIfChanged(i, newLine);
             } else if(Direction.isHorizontal(direction)) {
@@ -235,7 +251,7 @@ class Board {
         }
         
         Logger.logBoard(this,
-            'Tried to push '+ direction +' and ' ////////////////space needed
+            'Tried to push ' + direction + ' and '
             + (isSomeLineChanged? 'succeeded' : 'failed')
         );
 
@@ -418,7 +434,7 @@ class Util {
         // randomInt(start, end) - [start, end).
         
         let start, end;
-        if(arg1 == undefined) { /////////////////check arg2 too.
+        if(arg1 == undefined && arg2 == undefined) {
             start = 0;
             end = 1;
         } else if(arg2 == undefined) {

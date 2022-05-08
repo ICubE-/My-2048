@@ -15,9 +15,10 @@ HTML, CSS, Javascript로 만든 2048 페이지.
 
 ## Todo list
 
-1. Fix animation
-2. Redesign and insert credit
-3. Add color themes, light/dark mode
+~~1. Fix animation~~
+2. Clean code and add comments
+3. Redesign and insert credit
+4. Add color themes, light/dark mode
 5. New game
 6. Add score
 7. Save current status
