@@ -28,18 +28,10 @@ class Game {
         this.board.makeNewCell();
     }
 
-    static pushUp() {
-        this.push(Direction.UP);/**/////////////////////////
-    }
-    static pushDown() {
-        this.push(Direction.DOWN);
-    }
-    static pushLeft() {
-        this.push(Direction.LEFT);
-    }
-    static pushRight() {
-        this.push(Direction.RIGHT);
-    }
+    static pushUp()    { this.push(Direction.UP); }
+    static pushDown()  { this.push(Direction.DOWN); }
+    static pushLeft()  { this.push(Direction.LEFT); }
+    static pushRight() { this.push(Direction.RIGHT); }
 
     static push(direction) {
         Logger.logSystem('Pushing ' + direction + '...');
@@ -98,8 +90,8 @@ class UI {
             this.animationQueue.shift();
         }
     }
-/////////////////////////////////////////////////////////////////////////////////
-static pushAnimation(animation) {
+
+    static pushAnimation(animation) {
         this.animationQueue.push(animation);
     }
 
@@ -205,7 +197,7 @@ class Board {
         
         let isSomeLineChanged = false;
         for(let i = 0; i < Board.size; i++) {
-            let oldLine, newLine, isChanged; ///./////////isChanged 아래로 옮기기
+            let oldLine, newLine;
 
             if(Direction.isVertical(direction)) {
                 oldLine = this.getCol(i);
@@ -218,11 +210,11 @@ class Board {
                 newLine = this.getPushedLineToFirst(oldLine);
             } else if(Direction.isDownOrRight(direction)) {
                 newLine = this.getPushedLineToFirst(oldLine.reverse()).reverse();
-                this.tmpAnimList = this.tmpAnimList.map(a => a.flipRow())   ///////////////////missing semicolon
+                this.tmpAnimList = this.tmpAnimList.map(a => a.flipRow());
             } else throw directionTypeError;
             this.tmpAnimList = this.tmpAnimList.map(a => a.setCol(i));
 
-            ///////////isChanged here
+            let isChanged;
             if(Direction.isVertical(direction)) {
                 isChanged = this.replaceColAndReturnIfChanged(i, newLine);
             } else if(Direction.isHorizontal(direction)) {
@@ -235,7 +227,7 @@ class Board {
         }
         
         Logger.logBoard(this,
-            'Tried to push '+ direction +' and ' ////////////////space needed
+            'Tried to push ' + direction + ' and '
             + (isSomeLineChanged? 'succeeded' : 'failed')
         );
 
@@ -418,7 +410,7 @@ class Util {
         // randomInt(start, end) - [start, end).
         
         let start, end;
-        if(arg1 == undefined) { /////////////////check arg2 too.
+        if(arg1 == undefined && arg2 == undefined) {
             start = 0;
             end = 1;
         } else if(arg2 == undefined) {
