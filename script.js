@@ -68,7 +68,9 @@ class Control {
 }
 
 class UI {
+    /** @type {Element} */
     static fgLayer;
+    /** @type {Array<Animation>} */
     static animationQueue;
 
     static init() {
@@ -84,13 +86,13 @@ class UI {
             this.fgLayer.removeChild(this.fgLayer.children[0]);
         }
     }
-
+/*
     static clearAnimationQueue() {
         while(this.animationQueue.length > 0) {
             this.animationQueue.shift();
         }
     }
-
+*/
     static pushAnimation(animation) {
         this.animationQueue.push(animation);
     }
@@ -100,6 +102,9 @@ class UI {
     }
 
     static showAnimation() {
+        this.removeOverlappingCells();
+        this.removeAnimationClasses();
+        
         while(this.animationQueue.length > 0) {
             const anim = this.animationQueue.shift();
             if(anim instanceof NewCellAnimation) {
@@ -112,7 +117,24 @@ class UI {
                 throw TypeError(anim + ' is not an animation.');
             }
         }
-        this.clearAnimationQueue();
+    }
+
+    static removeOverlappingCells() {
+        const cells = this.fgLayer.getElementsByClassName('cell-will-be-removed');
+        while(cells.length > 0) {
+            cells[0].remove();
+        }
+    }
+
+    static removeAnimationClasses() {
+        const newCells = this.fgLayer.getElementsByClassName('cell-new');
+        while(newCells.length > 0) {
+            newCells[0].classList.remove('cell-new');
+        }
+        const mergedCells = this.fgLayer.getElementsByClassName('cell-merge');
+        while(mergedCells.length > 0) {
+            mergedCells[0].classList.remove('cell-merge');
+        }
     }
 
     static makeNewCell(anim) {
@@ -138,14 +160,16 @@ class UI {
 
     static doubleCell(anim) {   ///////////////////// Merge???
         const sq = anim.coord.toSq();
-        const cells = this.fgLayer.getElementsByClassName(sq);
-        while(cells.length > 0) {
-            cells[0].remove();
+
+        const mergingCells = this.fgLayer.getElementsByClassName(sq);
+        for(let i = 0; i < mergingCells.length; i++) {
+            mergingCells[i].classList.add('cell-will-be-removed');
         }
-        const newCell = document.createElement('div');
-        newCell.classList.add('cell', 'lv-' + anim.level);
-        newCell.classList.add(sq);
-        this.fgLayer.appendChild(newCell);
+
+        const mergedCell = document.createElement('div');
+        mergedCell.classList.add('cell', 'lv-' + anim.level, 'cell-merge');
+        mergedCell.classList.add(sq);
+        this.fgLayer.appendChild(mergedCell);
 
         //Logger.logUI(anim);
     }

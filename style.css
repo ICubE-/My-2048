@@ -23,6 +23,7 @@ body {
     z-index: 2;
     width: 100%;
     height: 100%;
+    font-size: var(--cell-size);
 }
 
 .cell {
@@ -32,7 +33,7 @@ body {
     padding: calc(var(--cell-spacing) / 2);
     box-sizing: border-box;
     font-weight: bold;
-    transition: transform 200ms ease; /*100ms ease-in-out*/
+    transition: transform 100ms ease-in-out;
     will-change: transform;
 }
 .cell::after {
@@ -56,15 +57,34 @@ body {
         transform: scale(1);
     }
 }
-.cell-new {
-    animation: appear 100ms ease 200ms; /*200ms ease 100ms*/
-    /*animation-fill-mode: backwards;*/
+.cell-new::after {
+    animation: appear 200ms ease 100ms;
+    animation-fill-mode: backwards;
 }
 
-.cell.lv-1, .cell.lv-2, .cell.lv-3 { font-size: calc(var(--cell-size) * 0.4); } /*40%*/
-.cell.lv-4, .cell.lv-5, .cell.lv-6 { font-size: calc(var(--cell-size) * 0.4); } /*40%*/
-.cell.lv-7, .cell.lv-8, .cell.lv-9 { font-size: calc(var(--cell-size) * 0.3); } /*30%*/
-.cell.lv-10, .cell.lv-11 { font-size: calc(var(--cell-size) * 0.3); } /*30%*/
+@keyframes emphasize {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+.cell-merge {
+    z-index: 3;
+}
+.cell-merge::after {
+    animation: emphasize 200ms ease 100ms;
+    animation-fill-mode: backwards;
+}
+
+.cell.lv-1, .cell.lv-2, .cell.lv-3 { font-size: 40%; }
+.cell.lv-4, .cell.lv-5, .cell.lv-6 { font-size: 40%; }
+.cell.lv-7, .cell.lv-8, .cell.lv-9 { font-size: 30%; }
+.cell.lv-10, .cell.lv-11 { font-size: 30%; }
 
 .cell.lv-1, .cell.lv-2, .cell.lv-3, .cell.lv-4 { color: black; }
 .cell.lv-5, .cell.lv-6, .cell.lv-7, .cell.lv-8, .cell.lv-9, .cell.lv-10, .cell.lv-11 { color: white; }
