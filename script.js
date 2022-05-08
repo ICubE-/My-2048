@@ -29,16 +29,16 @@ class Game {
     }
 
     static pushUp() {
-        this.pushUp(Direction.UP);/**/////////////////////////
+        this.push(Direction.UP);/**/////////////////////////
     }
     static pushDown() {
-        this.pushUp(Direction.DOWN);
+        this.push(Direction.DOWN);
     }
     static pushLeft() {
-        this.pushUp(Direction.LEFT);
+        this.push(Direction.LEFT);
     }
     static pushRight() {
-        this.pushUp(Direction.RIGHT);
+        this.push(Direction.RIGHT);
     }
 
     static push(direction) {
@@ -200,7 +200,7 @@ class Board {
         return emptyCoords;
     }
 
-    trytoPush(direction) {
+    tryToPush(direction) {
         const directionTypeError = TypeError(direction + ' is not a direction.');
         
         let isSomeLineChanged = false;
@@ -293,17 +293,38 @@ class Board {
     }
 
     replaceRowAndReturnIfChanged(num, rowArr) {
-        
+        let isChanged = false;
+        for(let c = 0; c < Board.size; c++) {
+            if(this.arr[num][c] != rowArr[c]) {
+                isChanged = true;
+            }
+            this.arr[num][c] = rowArr[c];
+        }
+        return isChanged;
+    }
+
+    replaceColAndReturnIfChanged(num, colArr) {
+        let isChanged = false;
+        for(let r = 0; r < Board.size; r++) {
+            if(this.arr[r][num] != colArr[r]) {
+                isChanged = true;
+            }
+            this.arr[r][num] = colArr[r];
+        }
+        return isChanged;
     }
 }
 
-class Coord {}
+class Coord {
+    constructor(r, c) {
+        this.r = r;
+        this.c = c;
+    }
 
-class Animation {}
-
-class NewCellAnimation extends Animation {}
-class MoveAnimation extends Animation {}
-class DoubleAnimation extends Animation {} /////Merge??
+    toSq() {
+        return 'sq-' + this.r + this.c;
+    }
+}
 
 class Direction {
     static UP = 'up';
@@ -311,8 +332,150 @@ class Direction {
     static LEFT = 'left';
     static RIGHT = 'right';
 
-    static isHorizontal(direction) {}
-    static isVertical(direction) {}
-    static isUpOrLeft(direction) {}
-    static isDownOrRight(direction) {}
+    static isVertical(direction) {
+        return direction == this.UP || direction == this.DOWN;
+    }
+    static isHorizontal(direction) {
+        return direction == this.LEFT || direction == this.RIGHT;
+    }
+    static isUpOrLeft(direction) {
+        return direction == this.UP || direction == this.LEFT;
+    }
+    static isDownOrRight(direction) {
+        return direction == this.DOWN || direction == this.RIGHT;
+    }
 }
+
+class Animation {}
+
+class NewCellAnimation extends Animation {
+    constructor(coord) {
+        super();
+        this.coord = coord;
+    }
+}
+
+class MoveAnimation extends Animation {
+    constructor(startIdx, endIdx) { /////////////////Make constructor more generally(startcoord, endcoord)
+        super();
+        this.start = new Coord(startIdx, -1);
+        this.end = new Coord(endIdx, -1);
+    }
+
+    flipRow() {
+        this.start.r = Board.size - 1 - this.start.r;
+        this.end.r = Board.size - 1 - this.end.r;
+        return this;/////////////////////Return new instance rather than returning this
+    }
+
+    setCol(idx) {
+        this.start.c = idx;
+        this.end.c = idx;
+        return this;/////////////////////Return new instance rather than returning this
+    }
+
+    exchangeRC() {/////////////////////Rename
+        const t1 = this.start.r;
+        this.start.r = this.start.c;
+        this.start.c = t1;
+        const t2 = this.end.r;
+        this.end.r = this.end.c;
+        this.end.c = t2;
+        return this;/////////////////////Return new instance rather than returning this
+    }
+}
+
+class DoubleAnimation extends Animation { /////Merge??
+    constructor(idx, lvl) { /////////////////Make constructor more generally
+        super();
+        this.coord = new Coord(idx, -1);
+        this.level = lvl;
+    }
+
+    flipRow() {
+        this.coord.r = Board.size - 1 - this.coord.r;
+        return this;/////////////////////Return new instance rather than returning this
+    }
+
+    setCol(idx) {
+        this.coord.c = idx;
+        return this;/////////////////////Return new instance rather than returning this
+    }
+
+    exchangeRC() {/////////////////////Rename
+        const t = this.coord.r;
+        this.coord.r = this.coord.c;
+        this.coord.c = t;
+        return this;/////////////////////Return new instance rather than returning this
+    }
+}
+
+class Util {
+    static randomInt(arg1, arg2) {
+        // randomInt() - 0.
+        // randomInt(end) - [0, end).
+        // randomInt(start, end) - [start, end).
+        
+        let start, end;
+        if(arg1 == undefined) { /////////////////check arg2 too.
+            start = 0;
+            end = 1;
+        } else if(arg2 == undefined) {
+            start = 0;
+            end = arg1;
+        } else {
+            start = arg1;
+            end = arg2;
+        }
+        return parseInt(Math.random() * (end-start) + start);
+    }
+}
+
+class Logger {
+    static allowLog = true;
+
+    static allowSystemLog = true;
+    static allowEventLog = true;
+    static allowLogicLog = true;
+    static allowUILog = true;
+
+    static log(msg) {
+        if(this.allowLog) console.log(msg);
+    }
+
+    static logSystem(msg) {
+        if(this.allowSystemLog) this.log(msg);
+    }
+    
+    static logEvent(msg) {
+        if(this.allowEventLog) this.log(msg);
+    }
+
+    static logLogic(msg) {
+        if(this.allowLogicLog) this.log(msg);
+    }
+
+    static logBoard(board, msg) {
+        if(!this.allowLogicLog || !this.allowLog) return;
+        let stringBuffer = '';
+        for(let i = 0; i < Board.size; i++) {
+            for(let j = 0; j < Board.size; j++) {
+                stringBuffer += board.arr[i][j] + ' ';
+            }
+            stringBuffer += '\n';
+        }
+        stringBuffer += msg;
+        this.logLogic(stringBuffer);
+    }
+
+    static logUI(msg) {
+        if(this.allowUILog) this.log(msg);
+    }
+}
+
+var main = function() {
+    Game.init();
+    Game.start();
+}
+
+main();
