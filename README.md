@@ -16,9 +16,11 @@ HTML, CSS, Javascript로 만든 2048 페이지.
 ## Todo list
 
 1. Fix animation
-2. Add color themes
-3. Add score
-4. Save current status
-5. Save highscore
-6. Change cell size
-7. More rows and columns?
+2. Redesign and insert credit
+3. Add color themes, light/dark mode
+5. New game
+6. Add score
+7. Save current status
+8. Save highscore
+9. Change cell size
+10. More rows and columns?
