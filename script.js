@@ -63,7 +63,7 @@ class Control {
         switch(e.code) {
             case 'KeyW': case 'ArrowUp':
                 Game.pushUp(); break;
-            case 'Keys': case 'ArrowDown':
+            case 'KeyS': case 'ArrowDown':
                 Game.pushDown(); break;
             case 'KeyA': case 'ArrowLeft':
                 Game.pushLeft(); break;
@@ -278,6 +278,7 @@ class Board {
             } else {
                 this.tmpAnimList.push(new MoveAnimation(bufidx, newArr.length));
                 newArr.push(buffer);
+                buffer = oldArr[i], bufidx = i;
             }
         }
         if(buffer != 0) {
