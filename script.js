@@ -100,7 +100,7 @@ class UI {
     static pushAnim(anim) {
         this.animQueue.push(anim);
     }
-    
+
     /** @param {Array<Anim>} animList */
     static concatAnim(animList) {
         this.animQueue = this.animQueue.concat(animList);
@@ -109,7 +109,7 @@ class UI {
     static showAnim() {
         this.removeOverlappingCells();
         this.removeAnimClasses();
-        
+
         while(this.animQueue.length > 0) {
             const anim = this.animQueue.shift();
             if(anim instanceof NewCellAnim) {
@@ -216,7 +216,7 @@ class Board {
 
         Logger.logBoard(this, 'Made new cell on ' + coord.r + ' ' + coord.c);
     }
-    
+
     getEmptyCoords() {
         /** @type {Array<Coord>} */
         const emptyCoords = new Array();
@@ -233,7 +233,7 @@ class Board {
     /** @param {Direction} direction */
     tryToPush(direction) {
         const directionTypeError = TypeError(direction + ' is not a direction.');
-        
+
         let isSomeLineChanged = false;
         for(let i = 0; i < Board.size; i++) {
             let oldLine, newLine;
@@ -268,7 +268,7 @@ class Board {
 
             UI.concatAnim(this.tmpAnimList);
         }
-        
+
         Logger.logBoard(this,
             'Tried to push ' + direction + ' and '
             + (isSomeLineChanged? 'succeeded' : 'failed')
@@ -324,7 +324,7 @@ class Board {
         while(newArr.length < Board.size) {
             newArr.push(0);
         }
-        
+
         return newArr;
     }
 
@@ -397,7 +397,7 @@ class MoveAnim extends Anim {
 
     static newWithRow(startIdx, endIdx) {
         return new MoveAnim(
-            new Coord(startIdx, -1), 
+            new Coord(startIdx, -1),
             new Coord(endIdx, -1)
         );
     }
@@ -406,21 +406,21 @@ class MoveAnim extends Anim {
         const sr = Board.size - 1 - this.start.r;
         const er = Board.size - 1 - this.end.r;
         return new MoveAnim(
-            new Coord(sr, -1), 
+            new Coord(sr, -1),
             new Coord(er, -1)
         );
     }
 
     colSet(idx) {
         return new MoveAnim(
-            new Coord(this.start.r, idx), 
+            new Coord(this.start.r, idx),
             new Coord(this.end.r, idx)
         );
     }
 
     transposed() {
         return new MoveAnim(
-            new Coord(this.start.c, this.start.r), 
+            new Coord(this.start.c, this.start.r),
             new Coord(this.end.c, this.end.r)
         );
     }
@@ -439,24 +439,15 @@ class MergeAnim extends Anim {
 
     rowFlipped() {
         const r = Board.size - 1 - this.coord.r;
-        return new MergeAnim(
-            new Coord(r, -1), 
-            this.level
-        );
+        return new MergeAnim(new Coord(r, -1), this.level);
     }
 
     colSet(idx) {
-        return new MergeAnim(
-            new Coord(this.coord.r, idx), 
-            this.level
-        );
+        return new MergeAnim(new Coord(this.coord.r, idx), this.level);
     }
 
     transposed() {
-        return new MergeAnim(
-            new Coord(this.coord.c, this.coord.r), 
-            this.level
-        );
+        return new MergeAnim(new Coord(this.coord.c, this.coord.r), this.level);
     }
 }
 
@@ -465,7 +456,7 @@ class Util {
         // randomInt() - 0.
         // randomInt(end) - [0, end).
         // randomInt(start, end) - [start, end).
-        
+
         let start, end;
         if(arg1 == undefined && arg2 == undefined) {
             start = 0;
@@ -496,7 +487,7 @@ class Logger {
     static logSystem(msg) {
         if(this.allowSystemLog) this.log(msg);
     }
-    
+
     static logEvent(msg) {
         if(this.allowEventLog) this.log(msg);
     }
