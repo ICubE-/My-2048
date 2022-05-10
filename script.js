@@ -1,4 +1,5 @@
 class Game {
+    /** @type {Board} */
     static board;
 
     static init() {
@@ -21,7 +22,7 @@ class Game {
     }
 
     static update() {
-        UI.showAnimation();
+        UI.showAnim();
     }
 
     static makeNewCell() {
@@ -33,6 +34,7 @@ class Game {
     static pushLeft()  { this.push(Direction.LEFT); }
     static pushRight() { this.push(Direction.RIGHT); }
 
+    /** @param {Direction} direction */
     static push(direction) {
         Logger.logSystem('Pushing ' + direction + '...');
 
@@ -70,15 +72,16 @@ class Control {
 class UI {
     /** @type {Element} */
     static fgLayer;
-    /** @type {Array<Animation>} */
-    static animationQueue;
+    /** @type {Array<Anim>} */
+    static animQueue;
 
     static init() {
         this.fgLayer = document.getElementsByClassName('foreground-layer')[0];
-        this.animationQueue = new Array();
+        this.animQueue = new Array();
         this.clearBoard();
 
         Logger.logUI('Initialized UI');
+        Logger.logUI(this.fgLayer);
     }
 
     static clearBoard() {
@@ -87,34 +90,36 @@ class UI {
         }
     }
 /*
-    static clearAnimationQueue() {
-        while(this.animationQueue.length > 0) {
-            this.animationQueue.shift();
+    static clearAnimQueue() {
+        while(this.animQueue.length > 0) {
+            this.animQueue.shift();
         }
     }
 */
-    static pushAnimation(animation) {
-        this.animationQueue.push(animation);
+    /** @param {Anim} anim */
+    static pushAnim(anim) {
+        this.animQueue.push(anim);
     }
 
-    static concatAnimation(animationList) {
-        this.animationQueue = this.animationQueue.concat(animationList);
+    /** @param {Array<Anim>} animList */
+    static concatAnim(animList) {
+        this.animQueue = this.animQueue.concat(animList);
     }
 
-    static showAnimation() {
+    static showAnim() {
         this.removeOverlappingCells();
-        this.removeAnimationClasses();
-        
-        while(this.animationQueue.length > 0) {
-            const anim = this.animationQueue.shift();
-            if(anim instanceof NewCellAnimation) {
+        this.removeAnimClasses();
+
+        while(this.animQueue.length > 0) {
+            const anim = this.animQueue.shift();
+            if(anim instanceof NewCellAnim) {
                 this.makeNewCell(anim);
-            } else if(anim instanceof MoveAnimation) {
+            } else if(anim instanceof MoveAnim) {
                 this.moveCell(anim);
-            } else if(anim instanceof DoubleAnimation) {
-                this.doubleCell(anim);
+            } else if(anim instanceof MergeAnim) {
+                this.mergeCell(anim);
             } else {
-                throw TypeError(anim + ' is not an animation.');
+                throw TypeError(anim + ' is not Anim.');
             }
         }
     }
@@ -126,7 +131,7 @@ class UI {
         }
     }
 
-    static removeAnimationClasses() {
+    static removeAnimClasses() {
         const newCells = this.fgLayer.getElementsByClassName('cell-new');
         while(newCells.length > 0) {
             newCells[0].classList.remove('cell-new');
@@ -137,15 +142,19 @@ class UI {
         }
     }
 
+    /** @param {NewCellAnim} anim */
     static makeNewCell(anim) {
+        const sq = anim.coord.toSq();
         const newCell = document.createElement('div');
         newCell.classList.add('cell', 'lv-1', 'cell-new');
-        newCell.classList.add(anim.coord.toSq());
+        newCell.classList.add(sq);
         this.fgLayer.appendChild(newCell);
 
-        //Logger.logUI(anim);
+        Logger.logUI('New cell is made on ' + sq);
+        Logger.logUI(newCell);
     }
 
+    /** @param {MoveAnim} anim */
     static moveCell(anim) {
         const startSq = anim.start.toSq();
         const endSq = anim.end.toSq();
@@ -155,10 +164,12 @@ class UI {
         movingCell.classList.add(endSq);
         movingCell.classList.remove(startSq);
 
-        //Logger.logUI(anim);
+        Logger.logUI('A cell is moved from ' + startSq + ' to ' + endSq);
+        Logger.logUI(movingCell);
     }
 
-    static doubleCell(anim) {   ///////////////////// Merge???
+    /** @param {MergeAnim} anim */
+    static mergeCell(anim) {
         const sq = anim.coord.toSq();
 
         const mergingCells = this.fgLayer.getElementsByClassName(sq);
@@ -171,7 +182,8 @@ class UI {
         mergedCell.classList.add(sq);
         this.fgLayer.appendChild(mergedCell);
 
-        //Logger.logUI(anim);
+        Logger.logUI('Two cells are merged on ' + sq);
+        Logger.logUI(mergedCell);
     }
 }
 
@@ -183,6 +195,7 @@ class Board {
     }
 
     init() {
+        /** @type {Array<number>} */
         this.arr = new Array();
         for(let i = 0; i < Board.size; i++) {
             const r = new Array(Board.size);
@@ -199,12 +212,13 @@ class Board {
         const coord = emptyCoords[idx];
         this.arr[coord.r][coord.c] = 1;
 
-        UI.pushAnimation(new NewCellAnimation(coord));
+        UI.pushAnim(new NewCellAnim(coord));
 
         Logger.logBoard(this, 'Made new cell on ' + coord.r + ' ' + coord.c);
     }
-    
+
     getEmptyCoords() {
+        /** @type {Array<Coord>} */
         const emptyCoords = new Array();
         for(let i = 0; i < Board.size; i++) {
             for(let j = 0; j < Board.size; j++) {
@@ -216,40 +230,45 @@ class Board {
         return emptyCoords;
     }
 
+    /** @param {Direction} direction */
     tryToPush(direction) {
         const directionTypeError = TypeError(direction + ' is not a direction.');
-        
+
         let isSomeLineChanged = false;
         for(let i = 0; i < Board.size; i++) {
             let oldLine, newLine;
 
+            // Get a clone of the line
             if(Direction.isVertical(direction)) {
                 oldLine = this.getCol(i);
             } else if(Direction.isHorizontal(direction)) {
                 oldLine = this.getRow(i);
             } else throw directionTypeError;
 
+            // Push the clone line
+            /** @type {Array<Anim>} */
             this.tmpAnimList = new Array();
             if(Direction.isUpOrLeft(direction)) {
                 newLine = this.getPushedLineToFirst(oldLine);
             } else if(Direction.isDownOrRight(direction)) {
                 newLine = this.getPushedLineToFirst(oldLine.reverse()).reverse();
-                this.tmpAnimList = this.tmpAnimList.map(a => a.flipRow());
+                this.tmpAnimList = this.tmpAnimList.map(a => a.rowFlipped());
             } else throw directionTypeError;
-            this.tmpAnimList = this.tmpAnimList.map(a => a.setCol(i));
+            this.tmpAnimList = this.tmpAnimList.map(a => a.colSet(i));
 
+            // Replace the line and check if changed
             let isChanged;
             if(Direction.isVertical(direction)) {
                 isChanged = this.replaceColAndReturnIfChanged(i, newLine);
             } else if(Direction.isHorizontal(direction)) {
                 isChanged = this.replaceRowAndReturnIfChanged(i, newLine);
-                this.tmpAnimList = this.tmpAnimList.map(a => a.exchangeRC());
+                this.tmpAnimList = this.tmpAnimList.map(a => a.transposed());
             } else throw directionTypeError;
             isSomeLineChanged ||= isChanged;
 
-            UI.concatAnimation(this.tmpAnimList);
+            UI.concatAnim(this.tmpAnimList);
         }
-        
+
         Logger.logBoard(this,
             'Tried to push ' + direction + ' and '
             + (isSomeLineChanged? 'succeeded' : 'failed')
@@ -286,26 +305,26 @@ class Board {
             if(buffer == 0) {
                 buffer = oldArr[i], bufidx = i;
             } else if(buffer == oldArr[i]) {
-                this.tmpAnimList.push(new MoveAnimation(bufidx, newArr.length));
-                this.tmpAnimList.push(new MoveAnimation(i, newArr.length));
-                this.tmpAnimList.push(new DoubleAnimation(newArr.length, buffer + 1));
+                this.tmpAnimList.push(MoveAnim.newWithRow(bufidx, newArr.length));
+                this.tmpAnimList.push(MoveAnim.newWithRow(i, newArr.length));
+                this.tmpAnimList.push(MergeAnim.newWithRow(newArr.length, buffer + 1));
                 newArr.push(buffer + 1);
                 buffer = 0, bufidx = undefined;
             } else {
-                this.tmpAnimList.push(new MoveAnimation(bufidx, newArr.length));
+                this.tmpAnimList.push(MoveAnim.newWithRow(bufidx, newArr.length));
                 newArr.push(buffer);
                 buffer = oldArr[i], bufidx = i;
             }
         }
         if(buffer != 0) {
-            this.tmpAnimList.push(new MoveAnimation(bufidx, newArr.length));
+            this.tmpAnimList.push(MoveAnim.newWithRow(bufidx, newArr.length));
             newArr.push(buffer);
         }
 
         while(newArr.length < Board.size) {
             newArr.push(0);
         }
-        
+
         return newArr;
     }
 
@@ -333,6 +352,10 @@ class Board {
 }
 
 class Coord {
+    /**
+     * @param {number} r 
+     * @param {number} c 
+     */
     constructor(r, c) {
         this.r = r;
         this.c = c;
@@ -349,81 +372,82 @@ class Direction {
     static LEFT = 'left';
     static RIGHT = 'right';
 
-    static isVertical(direction) {
-        return direction == this.UP || direction == this.DOWN;
-    }
-    static isHorizontal(direction) {
-        return direction == this.LEFT || direction == this.RIGHT;
-    }
-    static isUpOrLeft(direction) {
-        return direction == this.UP || direction == this.LEFT;
-    }
-    static isDownOrRight(direction) {
-        return direction == this.DOWN || direction == this.RIGHT;
-    }
+    static isVertical(direction)   { return direction == this.UP   || direction == this.DOWN; }
+    static isHorizontal(direction) { return direction == this.LEFT || direction == this.RIGHT; }
+
+    static isUpOrLeft(direction)    { return direction == this.UP   || direction == this.LEFT; }
+    static isDownOrRight(direction) { return direction == this.DOWN || direction == this.RIGHT; }
 }
 
-class Animation {}
+class Anim {}
 
-class NewCellAnimation extends Animation {
+class NewCellAnim extends Anim {
     constructor(coord) {
         super();
         this.coord = coord;
     }
 }
 
-class MoveAnimation extends Animation {
-    constructor(startIdx, endIdx) { /////////////////Make constructor more generally(startcoord, endcoord)
+class MoveAnim extends Anim {
+    constructor(startCoord, endCoord) {
         super();
-        this.start = new Coord(startIdx, -1);
-        this.end = new Coord(endIdx, -1);
+        this.start = startCoord;
+        this.end = endCoord;
     }
 
-    flipRow() {
-        this.start.r = Board.size - 1 - this.start.r;
-        this.end.r = Board.size - 1 - this.end.r;
-        return this;/////////////////////Return new instance rather than returning this
+    static newWithRow(startIdx, endIdx) {
+        return new MoveAnim(
+            new Coord(startIdx, -1),
+            new Coord(endIdx, -1)
+        );
     }
 
-    setCol(idx) {
-        this.start.c = idx;
-        this.end.c = idx;
-        return this;/////////////////////Return new instance rather than returning this
+    rowFlipped() {
+        const sr = Board.size - 1 - this.start.r;
+        const er = Board.size - 1 - this.end.r;
+        return new MoveAnim(
+            new Coord(sr, -1),
+            new Coord(er, -1)
+        );
     }
 
-    exchangeRC() {/////////////////////Rename
-        const t1 = this.start.r;
-        this.start.r = this.start.c;
-        this.start.c = t1;
-        const t2 = this.end.r;
-        this.end.r = this.end.c;
-        this.end.c = t2;
-        return this;/////////////////////Return new instance rather than returning this
+    colSet(idx) {
+        return new MoveAnim(
+            new Coord(this.start.r, idx),
+            new Coord(this.end.r, idx)
+        );
+    }
+
+    transposed() {
+        return new MoveAnim(
+            new Coord(this.start.c, this.start.r),
+            new Coord(this.end.c, this.end.r)
+        );
     }
 }
 
-class DoubleAnimation extends Animation { /////Merge??
-    constructor(idx, lvl) { /////////////////Make constructor more generally
+class MergeAnim extends Anim {
+    constructor(coord, level) {
         super();
-        this.coord = new Coord(idx, -1);
-        this.level = lvl;
+        this.coord = coord;
+        this.level = level;
     }
 
-    flipRow() {
-        this.coord.r = Board.size - 1 - this.coord.r;
-        return this;/////////////////////Return new instance rather than returning this
+    static newWithRow(idx, level) {
+        return new MergeAnim(new Coord(idx, -1), level);
     }
 
-    setCol(idx) {
-        this.coord.c = idx;
-        return this;/////////////////////Return new instance rather than returning this
+    rowFlipped() {
+        const r = Board.size - 1 - this.coord.r;
+        return new MergeAnim(new Coord(r, -1), this.level);
     }
 
-    exchangeRC() {/////////////////////Rename
-        const t = this.coord.r;
-        this.coord.r = this.coord.c;
-        this.coord.c = t;
-        return this;/////////////////////Return new instance rather than returning this
+    colSet(idx) {
+        return new MergeAnim(new Coord(this.coord.r, idx), this.level);
+    }
+
+    transposed() {
+        return new MergeAnim(new Coord(this.coord.c, this.coord.r), this.level);
     }
 }
 
@@ -432,7 +456,7 @@ class Util {
         // randomInt() - 0.
         // randomInt(end) - [0, end).
         // randomInt(start, end) - [start, end).
-        
+
         let start, end;
         if(arg1 == undefined && arg2 == undefined) {
             start = 0;
@@ -452,9 +476,9 @@ class Logger {
     static allowLog = true;
 
     static allowSystemLog = true;
-    static allowEventLog = true;
-    static allowLogicLog = true;
-    static allowUILog = true;
+    static allowEventLog = false;
+    static allowLogicLog = false;
+    static allowUILog = false;
 
     static log(msg) {
         if(this.allowLog) console.log(msg);
@@ -463,7 +487,7 @@ class Logger {
     static logSystem(msg) {
         if(this.allowSystemLog) this.log(msg);
     }
-    
+
     static logEvent(msg) {
         if(this.allowEventLog) this.log(msg);
     }
