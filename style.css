@@ -1,6 +1,61 @@
 body {
     --cell-size: 100px;
     --cell-spacing: 10px;
+    background-color: white;
+}
+
+.wrapper {
+    width: fit-content;
+    margin: auto;
+    margin-top: 100px;
+    justify-content: center;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: fit-content;
+    font-size: 1rem;
+}
+
+.btn-new-game {
+    padding: 0.6em 1.2em;
+    background-color: lightgray;
+    color: black;
+    border-radius: 0.4em;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-new-game:hover {
+    background-color: gray;
+}
+
+.btn-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 2.55em;
+    height: 2.55em;
+    background-color: lightgray;
+    border-radius: 0.4em;
+    cursor: pointer;
+}
+
+#menu-toggle:checked + .btn-menu{
+    background-color: gray;
+}
+
+.btn-menu .line {
+    display: block;
+    margin: 0.1em auto;
+    width: 1.3em;
+    height: 0.2em;
+    background-color: black;
+    border-radius: 0.1em;
 }
 
 .board {
@@ -8,8 +63,9 @@ body {
     width: calc(var(--cell-size) * 4);
     height: calc(var(--cell-size) * 4);
     background-color: lightgray;
-    border: lightgray solid 5px;
+    border: 5px solid lightgray;
     border-radius: 10px;
+    margin-top: 10px;
 }
 
 .background-layer {
