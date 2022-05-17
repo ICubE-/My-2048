@@ -520,3 +520,11 @@ var main = function() {
 }
 
 main();
+
+
+
+function toggleMenu() {
+    const collapseClassName = 'collapsed';
+    const menu = document.getElementsByClassName('menu')[0];
+    menu.classList.toggle(collapseClassName);
+}

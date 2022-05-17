@@ -14,12 +14,24 @@
 <div class="wrapper">
     <div class="top">
         <div class="btn-new-game">New Game</div>
-        <input type="checkbox" id="menu-toggle" hidden>
+        <input type="checkbox" id="menu-toggle" hidden onclick="toggleMenu();">
         <label for="menu-toggle" class="btn-menu">
             <span class="line"></span>
             <span class="line"></span>
             <span class="line"></span>
         </label>
+    </div>
+    <div class="menu collapsed">
+        <div class="settings-wrapper">
+            <select>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+            <select>
+                <option value="original">Original</option>
+                <option value="gray">Gray</option>
+            </select>
+        </div>
     </div>
     <div class="board">
         <div class="background-layer">
