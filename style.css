@@ -1,26 +1,54 @@
 body {
     --cell-size: 100px;
-    --cell-spacing: 10px;
+    --cell-spacing: calc(var(--cell-size) * 0.1);
     background-color: white;
+    font-size: calc(var(--cell-size) * 0.16);
+    font-family: sans-serif;
+}
+
+@media (max-width: 500px) and (min-width: 300px) {
+    body {
+        --cell-size: 20vw;
+    }
+}
+
+@media (max-width: 300px) {
+    body {
+        --cell-size: 60px;
+    }
 }
 
 .wrapper {
     width: fit-content;
     margin: auto;
-    margin-top: 100px;
+    margin-top: 3em;
     justify-content: center;
 }
 
 .top {
-    display: flex;
+    display: grid;
+    grid-template-areas:
+        "title        score"
+        "btn-new-game btn-menu";
+    gap: 0.3em;
     justify-content: space-between;
-    align-items: center;
     width: 100%;
     height: fit-content;
-    font-size: 1rem;
+}
+
+.title {
+    grid-area: title;
+    font-size: 4em;
+    font-weight: bold;
+}
+
+.score {
+    grid-area: score;
 }
 
 .btn-new-game {
+    grid-area: btn-new-game;
+    justify-self: start;
     padding: 0.6em 1.2em;
     background-color: lightgray;
     color: black;
@@ -34,6 +62,7 @@ body {
 }
 
 .btn-menu {
+    grid-area: btn-menu;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -60,18 +89,35 @@ body {
 
 .menu {
     width: 100%;
-    height: 100px;
-    margin: 10px 0;
-    padding: 0 10px;
+    height: 150px;
+    margin: 0.6em 0;
+    padding: 1.2em;
     box-sizing: border-box;
-    border-radius: 10px;
+    border-radius: 0.6em;
     overflow: hidden;
     background-color: lightgray;
-    transition: all 0.2s ease;
+    transition: height 0.2s ease;
 }
 
 .menu.collapsed {
     height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    transition-property: height, padding;
+    transition-duration: 0.2s, 0s;
+    transition-timing-function: ease;
+    transition-delay: 0s, 0.2s;
+}
+
+.menu p {
+    margin: 1em 0;
+}
+
+.menu a {
+    color: inherit;
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .board {
