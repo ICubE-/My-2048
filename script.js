@@ -528,3 +528,11 @@ function toggleMenu() {
     const menu = document.getElementsByClassName('menu')[0];
     menu.classList.toggle(collapseClassName);
 }
+
+function selectColorTheme(e) {
+    document.documentElement.setAttribute('color-theme', e.target.value);
+}
+let colorThemeDropdown = document.getElementsByClassName('dropdown-color-theme')[0];
+document.documentElement.setAttribute('color-theme', colorThemeDropdown[0].value);
+colorThemeDropdown.addEventListener('change', selectColorTheme);
+
