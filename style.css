@@ -25,6 +25,10 @@ body {
     justify-content: center;
 }
 
+/*
+ * Top
+ */
+
 .top {
     display: grid;
     grid-template-areas:
@@ -44,6 +48,23 @@ body {
 
 .score {
     grid-area: score;
+    background-color: lightgray;
+    font-weight: bold;
+    border-radius: 0.4em;
+    padding: 0.6em 0.9em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+}
+
+.score .label {
+    font-size: 0.8em;
+}
+
+.score .number {
+    font-size: 1.2em;
 }
 
 .btn-new-game {
@@ -63,6 +84,7 @@ body {
 
 .btn-menu {
     grid-area: btn-menu;
+    justify-self: end;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -87,11 +109,18 @@ body {
     border-radius: 0.1em;
 }
 
+/*
+ * Menu
+ */
+
 .menu {
     width: 100%;
-    height: 150px;
+    height: 8em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
     margin: 0.6em 0;
-    padding: 1.2em;
+    padding: 0 1.2em;
     box-sizing: border-box;
     border-radius: 0.6em;
     overflow: hidden;
@@ -101,16 +130,14 @@ body {
 
 .menu.collapsed {
     height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    transition-property: height, padding;
-    transition-duration: 0.2s, 0s;
-    transition-timing-function: ease;
-    transition-delay: 0s, 0.2s;
 }
 
-.menu p {
-    margin: 1em 0;
+.menu select {
+    background-color: white;
+    font-size: 1em;
+    border: none;
+    padding: 0.1em 0.6em;
+    border-radius: 0.4em;
 }
 
 .menu a {
@@ -119,6 +146,10 @@ body {
     text-decoration: underline;
     cursor: pointer;
 }
+
+/*
+ * Board
+ */
 
 .board {
     position: relative;

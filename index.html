@@ -14,7 +14,10 @@
 <div class="wrapper">
     <div class="top">
         <div class="title">2048</div>
-        <div class="score">S</div>
+        <div class="score">
+            <div class="label">Score</div>
+            <div class="number">0</div>
+        </div>
         <div class="btn-new-game">New Game</div>
         <input type="checkbox" id="menu-toggle" hidden onclick="toggleMenu();">
         <label for="menu-toggle" class="btn-menu">
@@ -34,8 +37,8 @@
                 <option value="gray">Gray</option>
             </select>
         </div>
-        <p><a class="btn-view-highscores">View Highscores</a></p>
-        <p>Made by <a href="https://github.com/ICubE-/My-2048-Page">ICubE</a></p>
+        <a class="btn-view-highscores">View Highscores</a>
+        <span>Made by <a href="https://github.com/ICubE-/My-2048-Page">ICubE</a></span>
     </div>
     <div class="board">
         <div class="background-layer">

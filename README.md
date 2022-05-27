@@ -17,11 +17,11 @@ HTML, CSS, Javascript로 만든 2048 페이지.
 
 1. ~~Fix animation~~ (Done)
 2. ~~Clean code and add comments~~ (Done)
-3. Redesign and insert credit
+3. ~~Redesign and insert credit~~ (Done)
 4. Add color themes, light/dark mode
-5. New game
+5. New game button
 6. Add score
 7. Save current status
 8. Save highscore
-9. Change cell size
+9. ~~Varying cell size~~ (Done)
 10. More rows and columns?
