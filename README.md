@@ -1,4 +1,4 @@
-# My-2048
+# My-2048-Page
 
 https://icube-.github.io/My-2048-Page/
 
@@ -11,6 +11,7 @@ HTML, CSS, Javascript로 만든 2048 페이지.
 ## Feature
 
 1. Basic 2048 game
+2. Color themes
 
 
 ## Todo list
