@@ -1,8 +1,12 @@
 :root[color-theme='original'] {
     --background-color: #faf8ef;
     --text-color: #776e65;
-    --btn-color: #8f7a66;
-    --board-border-color: #bbada0;
+    --btn-bg-color: #8f7a66;
+    --btn-text-color: #faf8ef;
+    --score-bg-color: #bbada0;
+    --score-label-color: #eee4da;
+    --score-number-color: #faf8ef;
+    --board-color: #bbada0;
     --cell-0-color: #cdc1b4;
     --cell-1-color: #eee4da;
     --cell-2-color: #eee1c9;
@@ -15,13 +19,19 @@
     --cell-9-color: #edc950;
     --cell-10-color: #edc53f;
     --cell-11-color: #edc22e;
+    --cell-dark-text-color: #776e65;
+    --cell-light-text-color: #f9f6f2;
 }
 
 :root[color-theme='gray'] {
     --background-color: #ffffff;
     --text-color: #000000;
-    --btn-color: #808080;
-    --board-border-color: #d3d3d3;
+    --btn-bg-color: #808080;
+    --btn-text-color: #ffffff;
+    --score-bg-color: #d3d3d3;
+    --score-label-color: #888888;
+    --score-number-color: #000000;
+    --board-color: #d3d3d3;
     --cell-0-color: #eeeeee;
     --cell-1-color: #aaaaaa;
     --cell-2-color: #999999;
@@ -34,15 +44,18 @@
     --cell-9-color: #222222;
     --cell-10-color: #111111;
     --cell-11-color: #000000;
+    --cell-dark-text-color: #000000;
+    --cell-light-text-color: #ffffff;
 }
 
 body {
     --cell-size: 100px;
     --cell-spacing: calc(var(--cell-size) * 0.1);
-    font-size: calc(var(--cell-size) * 0.16);
-    font-family: sans-serif;
+
     background-color: var(--background-color);
     color: var(--text-color);
+    font-family: sans-serif;
+    font-size: calc(var(--cell-size) * 0.16);
 }
 
 @media (max-width: 500px) and (min-width: 300px) {
@@ -61,7 +74,6 @@ body {
     width: fit-content;
     margin: auto;
     margin-top: 3em;
-    justify-content: center;
 }
 
 /*
@@ -75,77 +87,92 @@ body {
         "btn-new-game btn-menu";
     gap: 0.3em;
     justify-content: space-between;
-    width: 100%;
-    height: fit-content;
 }
 
 .title {
     grid-area: title;
+
     font-size: 4em;
     font-weight: bold;
 }
 
 .score {
     grid-area: score;
-    background-color: lightgray;
-    font-weight: bold;
+    align-self: center;
+
     border-radius: 0.4em;
     padding: 0.6em 0.9em;
+
+    background-color: var(--score-bg-color);
+    font-weight: bold;
+
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    align-self: center;
 }
 
 .score .label {
+    color: var(--score-label-color);
     font-size: 0.8em;
 }
 
 .score .number {
+    color: var(--score-number-color);
     font-size: 1.2em;
 }
 
 .btn-new-game {
     grid-area: btn-new-game;
     justify-self: start;
-    padding: 0.6em 1.2em;
-    background-color: var(--btn-color);
-    color: var(--background-color);
+
     border-radius: 0.4em;
+    padding: 0.6em 1.2em;
+
+    background-color: var(--btn-bg-color);
+    color: var(--btn-text-color);
     font-weight: bold;
     cursor: pointer;
 }
 
 .btn-new-game:hover {
-    background-color: gray;
+    box-shadow: inset 10em 10em rgba(0, 0, 0, 0.1);
+}
+
+.btn-new-game:active {
+    box-shadow: inset 10em 10em rgba(0, 0, 0, 0.2);
 }
 
 .btn-menu {
     grid-area: btn-menu;
     justify-self: end;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+
     width: 2.55em;
     height: 2.55em;
-    background-color: var(--btn-color);
     border-radius: 0.4em;
+    
+    background-color: var(--btn-bg-color);
     cursor: pointer;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-menu:hover {
+    box-shadow: inset 10em 10em rgba(0, 0, 0, 0.1);
 }
 
 #menu-toggle:checked + .btn-menu {
-    background-color: gray;
+    box-shadow: inset 10em 10em rgba(0, 0, 0, 0.2);
 }
 
 .btn-menu .line {
-    display: block;
-    margin: 0.1em auto;
     width: 1.3em;
     height: 0.2em;
-    background-color: var(--background-color);
+    margin: 0.1em auto;
     border-radius: 0.1em;
+    background-color: var(--btn-text-color);
 }
 
 /*
@@ -153,19 +180,19 @@ body {
  */
 
 .menu {
-    width: 100%;
     height: 8em;
+    margin: 0.6em 0;
+    border-radius: 0.6em;
+    
+    background-color: var(--cell-0-color);
+    
+    overflow: hidden;
+    transition: height 0.2s ease;
+    
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    margin: 0.6em 0;
-    padding: 0 1.2em;
-    box-sizing: border-box;
-    border-radius: 0.6em;
-    overflow: hidden;
-    background-color: var(--cell-0-color);
-    transition: height 0.2s ease;
 }
 
 .menu.collapsed {
@@ -173,12 +200,17 @@ body {
 }
 
 .menu select {
+    border: none;
+    border-radius: 0.4em;
+    padding: 0.1em 0.6em;
+
     background-color: var(--background-color);
     color: var(--text-color);
     font-size: 1em;
-    border: none;
-    padding: 0.1em 0.6em;
-    border-radius: 0.4em;
+}
+
+.menu select:hover {
+    box-shadow: inset 10em 10em rgba(0, 0, 0, 0.1);
 }
 
 .menu a {
@@ -188,17 +220,23 @@ body {
     cursor: pointer;
 }
 
+.menu a:hover {
+    text-shadow: 0 0 1em var(--text-color);
+}
+
 /*
  * Board
  */
 
 .board {
     position: relative;
+    
     width: calc(var(--cell-size) * 4);
     height: calc(var(--cell-size) * 4);
-    background-color: var(--board-border-color);
-    border: 5px solid var(--board-border-color);
+    border: 5px solid var(--board-color);
     border-radius: 10px;
+
+    background-color: var(--board-color);
 }
 
 .background-layer {
@@ -217,23 +255,28 @@ body {
 
 .cell {
     position: absolute;
+
     width: var(--cell-size);
     height: var(--cell-size);
     padding: calc(var(--cell-spacing) / 2);
     box-sizing: border-box;
+
     font-weight: bold;
     transition: transform 100ms ease-in-out;
     will-change: transform;
 }
 .cell::after {
     content: '';
-    display: flex;
+
     width: 100%;
     height: 100%;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--cell-0-color);
     border-radius: 5px;
+
+    background-color: var(--cell-0-color);
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 @keyframes appear {
@@ -275,18 +318,19 @@ body {
 .cell.lv-7, .cell.lv-8, .cell.lv-9 { font-size: 30%; }
 .cell.lv-10, .cell.lv-11 { font-size: 30%; }
 
-.cell.lv-1, .cell.lv-2, .cell.lv-3, .cell.lv-4 { color: black; }
-.cell.lv-5, .cell.lv-6, .cell.lv-7, .cell.lv-8, .cell.lv-9, .cell.lv-10, .cell.lv-11 { color: white; }
+.cell.lv-1, .cell.lv-2 { color: var(--cell-dark-text-color); }
+.cell.lv-3, .cell.lv-4, .cell.lv-5, .cell.lv-6, .cell.lv-7, .cell.lv-8,
+.cell.lv-9, .cell.lv-10, .cell.lv-11 { color: var(--cell-light-text-color); }
 
-.cell.lv-1::after { background-color: var(--cell-1-color); content: '2'; }
-.cell.lv-2::after { background-color: var(--cell-2-color); content: '4'; }
-.cell.lv-3::after { background-color: var(--cell-3-color); content: '8'; }
-.cell.lv-4::after { background-color: var(--cell-4-color); content: '16'; }
-.cell.lv-5::after { background-color: var(--cell-5-color); content: '32'; }
-.cell.lv-6::after { background-color: var(--cell-6-color); content: '64'; }
-.cell.lv-7::after { background-color: var(--cell-7-color); content: '128'; }
-.cell.lv-8::after { background-color: var(--cell-8-color); content: '256'; }
-.cell.lv-9::after { background-color: var(--cell-9-color); content: '512'; }
+.cell.lv-1::after  { background-color: var(--cell-1-color);  content: '2'; }
+.cell.lv-2::after  { background-color: var(--cell-2-color);  content: '4'; }
+.cell.lv-3::after  { background-color: var(--cell-3-color);  content: '8'; }
+.cell.lv-4::after  { background-color: var(--cell-4-color);  content: '16'; }
+.cell.lv-5::after  { background-color: var(--cell-5-color);  content: '32'; }
+.cell.lv-6::after  { background-color: var(--cell-6-color);  content: '64'; }
+.cell.lv-7::after  { background-color: var(--cell-7-color);  content: '128'; }
+.cell.lv-8::after  { background-color: var(--cell-8-color);  content: '256'; }
+.cell.lv-9::after  { background-color: var(--cell-9-color);  content: '512'; }
 .cell.lv-10::after { background-color: var(--cell-10-color); content: '1024'; }
 .cell.lv-11::after { background-color: var(--cell-11-color); content: '2048'; }
 
