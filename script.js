@@ -1,19 +1,24 @@
 class Game {
     /** @type {Board} */
     static board;
+    /** @type {number} */
+    static score;
 
     static init() {
         Logger.logSystem('Initializing...');
 
-        Board.size = 4;
+        Board.SIZE = 4;
         Control.bindKeyEvent();
-        UI.init();
+        GameStorage.HIGHSCORE_NUMBER = 10;
+        GameStorage.init();
     }
 
     static start() {
-        Logger.logSystem('Starting Game...');
+        Logger.logSystem('Starting game...');
 
         this.board = new Board();
+        this.score = 0;
+        UI.init();
 
         this.makeNewCell();
         this.makeNewCell();
@@ -23,6 +28,31 @@ class Game {
 
     static update() {
         UI.showAnim();
+        UI.updateScore();
+    }
+
+    /** @param {boolean} isForced */
+    static quit(isForced) {
+        let alertText = 'Game over! You scored ' + this.score + '. ';
+        if(GameStorage.isHighscore(this.score)) {
+            ///////////////////////////////////////////////need to break/////////////////////////////////////////////////////////
+            alertText += 'Input your name to register your score. '
+            let name;
+            let nameConfirmed = false;
+            while(!nameConfirmed) {
+                const tmp = prompt(alertText, 'Anonymous');
+                if(tmp == null) {
+                    name = 'Anonymous';
+                } else {
+                    name = tmp;
+                }
+                nameConfirmed = confirm('Confirm your name: ' + name);
+            }
+            GameStorage.registerHighscore(name, this.board.getHighestCellLevel(), this.score);
+            alert(GameStorage.getHighscores());
+        } else if(!isForced) {
+            alert(alertText);
+        }
     }
 
     static makeNewCell() {
@@ -43,6 +73,12 @@ class Game {
             this.makeNewCell();
         }
         this.update();
+    }
+
+    /** @param {number} mergedCellLevel */
+    static addScore(mergedCellLevel) {
+        this.score += 2 ** mergedCellLevel;
+        Logger.logSystem('Current score: ' + this.score);
     }
 }
 
@@ -72,16 +108,20 @@ class Control {
 class UI {
     /** @type {Element} */
     static fgLayer;
+    /** @type {Element} */
+    static scoreDiv;
     /** @type {Array<Anim>} */
     static animQueue;
 
     static init() {
         this.fgLayer = document.getElementsByClassName('foreground-layer')[0];
+        this.scoreDiv = document.getElementsByClassName('score')[0].getElementsByClassName('number')[0];
         this.animQueue = new Array();
         this.clearBoard();
 
         Logger.logUI('Initialized UI');
         Logger.logUI(this.fgLayer);
+        Logger.logUI(this.scoreDiv);
     }
 
     static clearBoard() {
@@ -185,10 +225,14 @@ class UI {
         Logger.logUI('Two cells are merged on ' + sq);
         Logger.logUI(mergedCell);
     }
+
+    static updateScore() {
+        this.scoreDiv.textContent = Game.score.toString();
+    }
 }
 
 class Board {
-    static size = 4;
+    static SIZE = 4;
 
     constructor() {
         this.init();
@@ -197,8 +241,8 @@ class Board {
     init() {
         /** @type {Array<number>} */
         this.arr = new Array();
-        for(let i = 0; i < Board.size; i++) {
-            const r = new Array(Board.size);
+        for(let i = 0; i < Board.SIZE; i++) {
+            const r = new Array(Board.SIZE);
             r.fill(0);
             this.arr.push(r);
         }
@@ -220,8 +264,8 @@ class Board {
     getEmptyCoords() {
         /** @type {Array<Coord>} */
         const emptyCoords = new Array();
-        for(let i = 0; i < Board.size; i++) {
-            for(let j = 0; j < Board.size; j++) {
+        for(let i = 0; i < Board.SIZE; i++) {
+            for(let j = 0; j < Board.SIZE; j++) {
                 if(this.arr[i][j] == 0) {
                     emptyCoords.push(new Coord(i, j));
                 }
@@ -230,12 +274,22 @@ class Board {
         return emptyCoords;
     }
 
+    getHighestCellLevel() {
+        let highestCellLevel = 0;
+        for(let i = 0; i < Board.SIZE; i++) {
+            for(let j = 0; j < Board.SIZE; j++) {
+                highestCellLevel = Math.max(highestCellLevel, this.arr[i][j]);
+            }
+        }
+        return highestCellLevel;
+    }
+
     /** @param {Direction} direction */
     tryToPush(direction) {
         const directionTypeError = TypeError(direction + ' is not a direction.');
 
         let isSomeLineChanged = false;
-        for(let i = 0; i < Board.size; i++) {
+        for(let i = 0; i < Board.SIZE; i++) {
             let oldLine, newLine;
 
             // Get a clone of the line
@@ -279,7 +333,7 @@ class Board {
 
     getRow(num) {
         const row = new Array();
-        for(let c = 0; c < Board.size; c++) {
+        for(let c = 0; c < Board.SIZE; c++) {
             row.push(this.arr[num][c]);
         }
         return row;
@@ -287,7 +341,7 @@ class Board {
 
     getCol(num) {
         const col = new Array();
-        for(let r = 0; r < Board.size; r++) {
+        for(let r = 0; r < Board.SIZE; r++) {
             col.push(this.arr[r][num]);
         }
         return col;
@@ -297,7 +351,7 @@ class Board {
         const newArr = new Array();
 
         let buffer = 0, bufidx;
-        for(let i = 0; i < Board.size; i++) {
+        for(let i = 0; i < Board.SIZE; i++) {
             if(oldArr[i] == 0) {
                 continue;
             }
@@ -309,6 +363,7 @@ class Board {
                 this.tmpAnimList.push(MoveAnim.newWithRow(i, newArr.length));
                 this.tmpAnimList.push(MergeAnim.newWithRow(newArr.length, buffer + 1));
                 newArr.push(buffer + 1);
+                Game.addScore(buffer + 1);
                 buffer = 0, bufidx = undefined;
             } else {
                 this.tmpAnimList.push(MoveAnim.newWithRow(bufidx, newArr.length));
@@ -321,7 +376,7 @@ class Board {
             newArr.push(buffer);
         }
 
-        while(newArr.length < Board.size) {
+        while(newArr.length < Board.SIZE) {
             newArr.push(0);
         }
 
@@ -330,7 +385,7 @@ class Board {
 
     replaceRowAndReturnIfChanged(num, rowArr) {
         let isChanged = false;
-        for(let c = 0; c < Board.size; c++) {
+        for(let c = 0; c < Board.SIZE; c++) {
             if(this.arr[num][c] != rowArr[c]) {
                 isChanged = true;
             }
@@ -341,7 +396,7 @@ class Board {
 
     replaceColAndReturnIfChanged(num, colArr) {
         let isChanged = false;
-        for(let r = 0; r < Board.size; r++) {
+        for(let r = 0; r < Board.SIZE; r++) {
             if(this.arr[r][num] != colArr[r]) {
                 isChanged = true;
             }
@@ -403,8 +458,8 @@ class MoveAnim extends Anim {
     }
 
     rowFlipped() {
-        const sr = Board.size - 1 - this.start.r;
-        const er = Board.size - 1 - this.end.r;
+        const sr = Board.SIZE - 1 - this.start.r;
+        const er = Board.SIZE - 1 - this.end.r;
         return new MoveAnim(
             new Coord(sr, -1),
             new Coord(er, -1)
@@ -438,7 +493,7 @@ class MergeAnim extends Anim {
     }
 
     rowFlipped() {
-        const r = Board.size - 1 - this.coord.r;
+        const r = Board.SIZE - 1 - this.coord.r;
         return new MergeAnim(new Coord(r, -1), this.level);
     }
 
@@ -450,6 +505,32 @@ class MergeAnim extends Anim {
         return new MergeAnim(new Coord(this.coord.c, this.coord.r), this.level);
     }
 }
+
+class GameStorage {
+    static HIGHSCORE_NUMBER = 10;
+    static KEY_HIGHSCORES = '2048.highscores';
+
+    static init() {
+        const highscores = this.getHighscores();
+        // if it's not in form, set highscore.
+    }
+    
+    static getHighscores() {
+        localStorage.getItem(this.KEY_HIGHSCORES);
+    }
+    
+    static setHighscores(text) {
+        localStorage.setItem(this.KEY_HIGHSCORES, text);
+    }
+    
+    static isHighscore(score) {
+        return confirm('is highscore?');
+    }
+    
+    static registerHighscore(name, highestCellLevel, score) {
+        //
+    }
+    }
 
 class Util {
     static randomInt(arg1, arg2) {
@@ -475,7 +556,7 @@ class Util {
 class Logger {
     static allowLog = true;
 
-    static allowSystemLog = true;
+    static allowSystemLog = false;
     static allowEventLog = false;
     static allowLogicLog = false;
     static allowUILog = false;
@@ -499,8 +580,8 @@ class Logger {
     static logBoard(board, msg) {
         if(!this.allowLogicLog || !this.allowLog) return;
         let stringBuffer = '';
-        for(let i = 0; i < Board.size; i++) {
-            for(let j = 0; j < Board.size; j++) {
+        for(let i = 0; i < Board.SIZE; i++) {
+            for(let j = 0; j < Board.SIZE; j++) {
                 stringBuffer += board.arr[i][j] + ' ';
             }
             stringBuffer += '\n';
@@ -522,6 +603,11 @@ var main = function() {
 main();
 
 
+
+function newGame() {
+    Game.quit(true);
+    Game.start();
+}
 
 function toggleMenu() {
     const collapseClassName = 'collapsed';
