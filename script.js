@@ -9,7 +9,7 @@ class Game {
 
         Board.SIZE = 4;
         Control.bindKeyEvent();
-        GameStorage.HIGHSCORE_NUMBER = 10;
+        GameStorage.HIGHSCORES_NUMBER = 10;
         GameStorage.init();
     }
 
@@ -33,8 +33,9 @@ class Game {
 
     /** @param {boolean} isForced */
     static quit(isForced) {
-        let alertText = 'Game over! You scored ' + this.score + '. ';
-        if(GameStorage.isHighscore(this.score)) {
+        const highestCellLevel = this.board.getHighestCellLevel();
+        let alertText = 'Game over! You scored ' + this.score + '.';
+        if(GameStorage.isHighscore(highestCellLevel, this.score)) {
             ///////////////////////////////////////////////need to break/////////////////////////////////////////////////////////
             alertText += 'Input your name to register your score. '
             let name;
@@ -43,13 +44,16 @@ class Game {
                 const tmp = prompt(alertText, 'Anonymous');
                 if(tmp == null) {
                     name = 'Anonymous';
+                } else if(tmp.includes('$')) {
+                    alert('Do not use "$" in name!');
+                    continue;
                 } else {
                     name = tmp;
                 }
                 nameConfirmed = confirm('Confirm your name: ' + name);
             }
-            GameStorage.registerHighscore(name, this.board.getHighestCellLevel(), this.score);
-            alert(GameStorage.getHighscores());
+            GameStorage.registerHighscore(name, highestCellLevel, this.score);
+            alert(GameStorage.highscores);
         } else if(!isForced) {
             alert(alertText);
         }
@@ -507,30 +511,125 @@ class MergeAnim extends Anim {
 }
 
 class GameStorage {
-    static HIGHSCORE_NUMBER = 10;
     static KEY_HIGHSCORES = '2048.highscores';
+    static HIGHSCORES_NUMBER = 10;
+    static HIGHSCORE_SUBJECT_SEP = '$';
+    static HIGHSCORES_SEP = '$$';
+
+    /** @type {Array<Highscore>} */
+    static highscores;
 
     static init() {
-        const highscores = this.getHighscores();
-        // if it's not in form, set highscore.
+        this.loadHighscores();
+        
+        Logger.logStorage('Initialized storage');
     }
     
-    static getHighscores() {
-        localStorage.getItem(this.KEY_HIGHSCORES);
+    // The form of highscores:
+    // (name)$(highestCellLevel)$(score)$$...
+
+    static loadHighscores() {
+        Logger.logStorage('Loading highscores...');
+        
+        try {
+            const parsedHighscores = localStorage.getItem(this.KEY_HIGHSCORES);
+            Logger.logStorage(parsedHighscores);
+            this.highscores =
+                parsedHighscores
+                .split(this.HIGHSCORES_SEP)
+                .map(x => Highscore.fromStorageForm(x));
+        } catch {
+            Logger.logStorage('Error occured during loading highscores.');
+            this.highscores = new Array();
+        }
+
+        Logger.logStorage(this.highscores);
     }
     
-    static setHighscores(text) {
-        localStorage.setItem(this.KEY_HIGHSCORES, text);
+    static saveHighscores() {
+        Logger.logStorage('Saving highscores...');
+        
+        const parsedHighscores =
+            this.highscores
+            .map(x => x.toStorageForm())
+            .join(this.HIGHSCORES_SEP);
+        localStorage.setItem(this.KEY_HIGHSCORES, parsedHighscores);
+        
+        Logger.logStorage(this.highscores);
+        Logger.logStorage(parsedHighscores);
     }
     
-    static isHighscore(score) {
-        return confirm('is highscore?');
+    static isHighscore(highestCellLevel, score) {
+        if(this.highscores.length < this.HIGHSCORES_NUMBER) {
+            return true;
+        } else {
+            const last = this.highscores[this.HIGHSCORES_NUMBER - 1];
+            const tmp = new Highscore('', highestCellLevel, score);
+            return Highscore.compare(tmp, last) < 0;
+        }
     }
     
     static registerHighscore(name, highestCellLevel, score) {
-        //
+        const hs = new Highscore(name, highestCellLevel, score);
+        this.highscores.push(hs);
+        this.highscores = this.highscores.sort(Highscore.compare);
+        while(this.highscores.length > this.HIGHSCORES_NUMBER) {
+            this.highscores.pop();
+        }
+        this.saveHighscores();
     }
+
+    static getHighscores() {
+        const highscoresInString =
+            this.highscores
+            .map(x => x.toString())
+            .join(this.HIGHSCORES_SEP);
     }
+}
+
+class Highscore {
+    constructor(name, highestCellLevel, score) {
+        this.name = name;
+        this.highestCellLevel = highestCellLevel;
+        this.score = score;
+    }
+
+    toString() {
+        return this.name + '\t' + this.highestCellLevel + '\t' + this.score;
+    }
+
+    toStorageForm() {
+        const sep = GameStorage.HIGHSCORE_SUBJECT_SEP;
+        return this.name + sep + this.highestCellLevel + sep + this.score;
+    }
+
+    static fromStorageForm(parsed) {
+        const splitted = parsed.split(GameStorage.HIGHSCORE_SUBJECT_SEP);
+
+        const name = splitted[0];
+        const highestCellLevel = parseInt(splitted[1]);
+        const score = parseInt(splitted[2]);
+
+        if(Number.isInteger(highestCellLevel) && Number.isInteger(score)) {
+            return new Highscore(name, highestCellLevel, score);
+        } else {
+            throw Error();
+        }
+    }
+
+    /**
+     * Negative value if a is higher than b, and vice versa.
+     * @param {Highscore} a 
+     * @param {Highscore} b 
+     */
+    static compare(a, b) {
+        if(a.highestCellLevel != b.highestCellLevel) {
+            return b.highestCellLevel - a.highestCellLevel;
+        } else {
+            return b.score - a.score;
+        }
+    }
+}
 
 class Util {
     static randomInt(arg1, arg2) {
@@ -560,6 +659,7 @@ class Logger {
     static allowEventLog = false;
     static allowLogicLog = false;
     static allowUILog = false;
+    static allowStorageLog = true;
 
     static log(msg) {
         if(this.allowLog) console.log(msg);
@@ -592,6 +692,10 @@ class Logger {
 
     static logUI(msg) {
         if(this.allowUILog) this.log(msg);
+    }
+
+    static logStorage(msg) {
+        if(this.allowStorageLog) this.log(msg);
     }
 }
 
