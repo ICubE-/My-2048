@@ -180,23 +180,31 @@ body {
  */
 
 .menu {
-    height: 8em;
+    max-height: 15em;
     margin: 0.6em 0;
     border-radius: 0.6em;
     
     background-color: var(--cell-0-color);
     
     overflow: hidden;
-    transition: height 0.2s ease;
+    transition: max-height 0.2s ease;
     
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
     align-items: center;
+    gap: 1em;
 }
 
 .menu.collapsed {
-    height: 0;
+    max-height: 0;
+}
+
+.menu > *:first-child {
+    margin-top: 1em;
+}
+
+.menu > *:last-child {
+    margin-bottom: 1em;
 }
 
 .menu select {
